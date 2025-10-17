@@ -20,7 +20,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'caja',
-
+    'cartera',
     'reportes',
     'notificaciones',
     'gestion_usuarios',

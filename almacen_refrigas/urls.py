@@ -10,7 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api/', include('caja.urls')),
-  
+    path('api/cartera/', include('cartera.urls')),
     
     path('reportes/', include('reportes.urls')),
     path('notificaciones/', include('notificaciones.urls')),
