@@ -79,5 +79,5 @@ class CierreCaja(models.Model):
         
         if self.total_fisico is not None:
             self.diferencia = self.total_fisico - self.total_calculado
-        
-        self.save()
+
+            self.save()

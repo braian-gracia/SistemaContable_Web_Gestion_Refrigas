@@ -20,6 +20,16 @@ def login_auth0(request):
                     f"&redirect_uri={settings.AUTH0_CALLBACK_URL}&scope=openid profile email")
 
 def callback(request):
+    # Si estás en modo debug, simplemente salta todo
+    if settings.DEBUG:
+        user, _ = User.objects.get_or_create(
+            username="debug_user",
+            defaults={"email": "debug@localhost", "first_name": "Debug"}
+        )
+        login(request, user)
+        return redirect("/")
+
+    # === Flujo real Auth0 ===
     code = request.GET.get('code')
 
     token_url = f"https://{settings.AUTH0_DOMAIN}/oauth/token"
@@ -43,9 +53,19 @@ def callback(request):
 
     # 🔒 Verificar si está autorizado en la base de datos
     try:
-        autorizado = UsuarioAutorizado.objects.get(email=user_email, activo=True)
+        UsuarioAutorizado.objects.get(email=user_email, activo=True)
     except UsuarioAutorizado.DoesNotExist:
-        return render(request, "no_autorizado.html", {"email": user_email})
+        # En producción, bloquear
+        if not settings.DEBUG:
+            return render(request, "no_autorizado.html", {"email": user_email})
+        # En debug, permitir igualmente
+        else:
+            user, _ = User.objects.get_or_create(
+                username=user_email,
+                defaults={'email': user_email, 'first_name': user_name}
+            )
+            login(request, user)
+            return redirect("/")
 
     # ✅ Crear usuario local si no existe
     user, created = User.objects.get_or_create(
@@ -54,8 +74,7 @@ def callback(request):
     )
 
     login(request, user)
-    return redirect('/')
-
+    return redirect("/")
 
 def logout_auth0(request):
     logout(request)
