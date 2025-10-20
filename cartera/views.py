@@ -70,7 +70,7 @@ def listado_deudas(request):
         'deudas_vencidas_count': deudas_vencidas_count,
     }
     
-    return render(request, 'cartera/listado.html', context)
+    return render(request, 'listado.html', context)
 
 def marcar_como_pagada(request, deuda_id):
     deuda = get_object_or_404(Deuda, id=deuda_id)

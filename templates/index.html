@@ -115,6 +115,11 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
         .btn-danger {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
         }
@@ -250,7 +255,10 @@
         <div class="header">
             <h1>🏪 Almacén Refrigas</h1>
             <p>Sistema de Gestión de Caja Diaria</p>
-            <a href="{% url 'logout' %}">Cerrar sesión</a>
+            <br>
+            <br>
+            <p> <a href="{% url 'logout' %}" class="btn btn-sm">Cerrar sesión</a>  |  <a href="/cartera/" class="btn btn-sm">Ir a Cartera</a></p>
+
         </div>
 
         <!-- Alertas -->
