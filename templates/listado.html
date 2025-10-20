@@ -3,157 +3,551 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Cartera</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Almacén Refrigas - Gestión de Cartera</title>
+    
     <style>
-        .table-vencida {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-content {
+            flex: 1;
+        }
+
+        .header h1 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .resumen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .resumen-item {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .resumen-item.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .resumen-item.success {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+        }
+
+        .resumen-item.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .resumen-item.danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .resumen-item h4 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .resumen-item .valor {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            margin-bottom: 30px;
+        }
+
+        .card h3 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        tr.vencida {
             background-color: #ffe6e6;
         }
-        .table-pagada {
+
+        tr.pagada {
             background-color: #e6ffe6;
         }
-        .badge-vencida {
-            background-color: #dc3545;
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .badge-pagada {
-            background-color: #198754;
+
+        .badge-success {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
         }
-        .badge-pendiente {
-            background-color: #ffc107;
-            color: #000;
+
+        .badge-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .badge-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 0;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h5 {
+            margin: 0;
+            font-size: 1.3em;
+        }
+
+        .close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .text-success {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .text-danger {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .text-muted {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h4 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .resumen {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 10px 8px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>📊 Gestión de Cartera</h1>
-            <a href="/admin/cartera/deuda/add/" class="btn btn-primary">➕ Nueva Deuda</a>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1>🪙 Almacén Refrigas</h1>
+                <p>Gestión de Cartera</p>
+            </div>
+            <div class="header-actions">
+                <a href="/" class="btn btn-sm">Volver a Caja</a>
+                <a href="/admin/cartera/deuda/add/" class="btn btn-primary btn-sm">➕ Nueva Deuda</a>
+            </div>
         </div>
 
-        <!-- Mostrar mensajes -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+        <!-- Mensajes de alerta -->
+        <div id="alertas">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
 
         <!-- Resumen General -->
-        <div class="row mb-4">
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-primary">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Total Deudas</h6>
-                        <p class="card-text h4">
-                            ${{ total_deudas|default:"0" }}
-                        </p>
-                    </div>
-                </div>
+        <div class="resumen">
+            <div class="resumen-item primary">
+                <h4>Total Deudas</h4>
+                <div class="valor">${{ total_deudas|default:"0" }}</div>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-success">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Total Abonado</h6>
-                        <p class="card-text h4">
-                            ${{ total_abonado_general|default:"0" }}
-                        </p>
-                    </div>
-                </div>
+            <div class="resumen-item success">
+                <h4>Total Abonado</h4>
+                <div class="valor">${{ total_abonado_general|default:"0" }}</div>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-warning">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Saldo Pendiente</h6>
-                        <p class="card-text h4">
-                            ${{ saldo_pendiente_total|default:"0" }}
-                        </p>
-                    </div>
-                </div>
+            <div class="resumen-item warning">
+                <h4>Saldo Pendiente</h4>
+                <div class="valor">${{ saldo_pendiente_total|default:"0" }}</div>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-danger">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Deudas Vencidas</h6>
-                        <p class="card-text h4">
-                            {{ deudas_vencidas_count|default:"0" }}
-                        </p>
-                    </div>
-                </div>
+            <div class="resumen-item danger">
+                <h4>Deudas Vencidas</h4>
+                <div class="valor">{{ deudas_vencidas_count|default:"0" }}</div>
             </div>
         </div>
 
         <!-- Tabla de Deudas -->
-        {% if deudas_con_info %}
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Descripción</th>
-                            <th>Monto Total</th>
-                            <th>Total Abonado</th>
-                            <th>Saldo Restante</th>
-                            <th>Fecha Creación</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in deudas_con_info %}
-                            <tr class="{% if item.esta_vencida %}table-danger{% elif item.deuda.pagada %}table-success{% endif %}">
-                                <td>
-                                    <strong>{{ item.deuda.cliente.nombre }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ item.deuda.cliente.correo }}</small>
-                                </td>
-                                <td>{{ item.deuda.descripcion|default:"Sin descripción" }}</td>
-                                <td><strong>${{ item.deuda.monto }}</strong></td>
-                                <td>${{ item.total_abonado|default:"0" }}</td>
-                                <td>
-                                    <span class="{% if item.saldo_restante > 0 %}text-danger fw-bold{% else %}text-success{% endif %}">
-                                        ${{ item.saldo_restante|default:item.deuda.monto }}
-                                    </span>
-                                </td>
-                                <td>{{ item.deuda.fecha }}</td>
-                                <td>
-                                    {% if item.deuda.pagada %}
-                                        <span class="badge bg-success">Pagada</span>
-                                    {% elif item.esta_vencida %}
-                                        <span class="badge bg-danger">Vencida</span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark">Pendiente</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if not item.deuda.pagada %}
-                                        <!-- Botón para abonar -->
-                                        <button type="button" class="btn btn-primary btn-sm mb-1" data-bs-toggle="modal" data-bs-target="#abonoModal{{ item.deuda.id }}">
-                                            💰 Abonar
-                                        </button>
-                                        
-                                        <!-- Formulario para marcar como pagada -->
-                                        <form method="post" action="{% url 'marcar_como_pagada' item.deuda.id %}" style="display: inline;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-success btn-sm mb-1" onclick="return confirm('¿Marcar esta deuda como pagada?')">
-                                                ✅ Pagar Todo
-                                            </button>
-                                        </form>
-                                    {% else %}
-                                        <span class="text-success">✅ Liquidada</span>
-                                    {% endif %}
-                                </td>
+        <div class="card">
+            <h3>📋 Listado de Deudas</h3>
+            
+            {% if deudas_con_info %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Descripción</th>
+                                <th>Monto Total</th>
+                                <th>Total Abonado</th>
+                                <th>Saldo Restante</th>
+                                <th>Fecha Creación</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
                             </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in deudas_con_info %}
+                                <tr class="{% if item.esta_vencida %}vencida{% elif item.deuda.pagada %}pagada{% endif %}">
+                                    <td>
+                                        <strong>{{ item.deuda.cliente.nombre }}</strong><br>
+                                        <span class="text-muted">{{ item.deuda.cliente.correo }}</span>
+                                    </td>
+                                    <td>{{ item.deuda.descripcion|default:"Sin descripción" }}</td>
+                                    <td><strong>${{ item.deuda.monto }}</strong></td>
+                                    <td>${{ item.total_abonado|default:"0" }}</td>
+                                    <td>
+                                        <span class="{% if item.saldo_restante > 0 %}text-danger{% else %}text-success{% endif %}">
+                                            ${{ item.saldo_restante|default:item.deuda.monto }}
+                                        </span>
+                                    </td>
+                                    <td>{{ item.deuda.fecha }}</td>
+                                    <td>
+                                        {% if item.deuda.pagada %}
+                                            <span class="badge badge-success">Pagada</span>
+                                        {% elif item.esta_vencida %}
+                                            <span class="badge badge-danger">Vencida</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">Pendiente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not item.deuda.pagada %}
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="openModal('modal{{ item.deuda.id }}')">
+                                                💰 Abonar
+                                            </button>
+                                            <form method="post" action="{% url 'marcar_como_pagada' item.deuda.id %}" style="display: inline; margin-top: 5px;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('¿Marcar esta deuda como pagada?')">
+                                                    ✅ Pagar
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-success">✅ Liquidada</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
 
-                            <!-- Modal para abonos -->
-                            <div class="modal fade" id="abonoModal{{ item.deuda.id }}" tabindex="-1">
-                                <div class="modal-dialog">
+                                <!-- Modal para abonos -->
+                                <div id="modal{{ item.deuda.id }}" class="modal">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title">Registrar Abono</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            <h5>Registrar Abono</h5>
+                                            <button type="button" class="close" onclick="closeModal('modal{{ item.deuda.id }}')">&times;</button>
                                         </div>
                                         <form method="post" action="{% url 'agregar_abono' item.deuda.id %}">
                                             {% csrf_token %}
@@ -164,52 +558,62 @@
                                                     <strong>Saldo Restante:</strong> ${{ item.saldo_restante|default:item.deuda.monto }}
                                                 </div>
                                                 
-                                                <div class="mb-3">
-                                                    <label for="monto{{ item.deuda.id }}" class="form-label">Monto del Abono:</label>
+                                                <div class="form-group">
+                                                    <label for="monto{{ item.deuda.id }}">Monto del Abono:</label>
                                                     <input type="number" step="0.01" min="0.01" max="{{ item.saldo_restante|default:item.deuda.monto }}" 
-                                                           class="form-control" id="monto{{ item.deuda.id }}" name="monto" required
+                                                           id="monto{{ item.deuda.id }}" name="monto" required
                                                            placeholder="Ej: 50.00">
                                                     <div class="form-text">Máximo permitido: ${{ item.saldo_restante|default:item.deuda.monto }}</div>
                                                 </div>
                                                 
-                                                <div class="mb-3">
-                                                    <label for="descripcion{{ item.deuda.id }}" class="form-label">Descripción:</label>
-                                                    <input type="text" class="form-control" id="descripcion{{ item.deuda.id }}" 
+                                                <div class="form-group">
+                                                    <label for="descripcion{{ item.deuda.id }}">Descripción:</label>
+                                                    <input type="text" id="descripcion{{ item.deuda.id }}" 
                                                            name="descripcion" value="Abono a deuda - {{ item.deuda.descripcion|default:'Deuda pendiente' }}">
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn" onclick="closeModal('modal{{ item.deuda.id }}')">Cancelar</button>
                                                 <button type="submit" class="btn btn-primary">Registrar Abono</button>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="alert alert-info text-center">
-                <h4>No hay deudas registradas</h4>
-                <p>No se encontraron deudas en el sistema.</p>
-                <a href="/admin/cartera/deuda/add/" class="btn btn-primary">Agregar Primera Deuda</a>
-            </div>
-        {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h4>No hay deudas registradas</h4>
+                    <p>No se encontraron deudas en el sistema.</p>
+                    <a href="/admin/cartera/deuda/add/" class="btn btn-primary">Agregar Primera Deuda</a>
+                </div>
+            {% endif %}
+        </div>
 
-        <!-- Pie de página -->
-        <div class="mt-4 text-center text-muted">
-            <small>Sistema de Gestión de Cartera - {{ current_year }}</small>
+        <div class="footer">
+            Sistema de Gestión de Cartera - <span class="current-year">{{ current_year }}</span>
         </div>
     </div>
 
-    <!-- Scripts de Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Script para actualizar año actual -->
     <script>
-        // Actualizar año actual en el pie de página
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Cerrar modal al hacer clic fuera de él
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        // Actualizar año actual
         document.addEventListener('DOMContentLoaded', function() {
             const yearElements = document.querySelectorAll('.current-year');
             const currentYear = new Date().getFullYear();
