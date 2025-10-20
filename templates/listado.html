@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Cartera</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table-vencida {
+            background-color: #ffe6e6;
+        }
+        .table-pagada {
+            background-color: #e6ffe6;
+        }
+        .badge-vencida {
+            background-color: #dc3545;
+        }
+        .badge-pagada {
+            background-color: #198754;
+        }
+        .badge-pendiente {
+            background-color: #ffc107;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>📊 Gestión de Cartera</h1>
+            <a href="/admin/cartera/deuda/add/" class="btn btn-primary">➕ Nueva Deuda</a>
+        </div>
+
+        <!-- Mostrar mensajes -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Resumen General -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Total Deudas</h6>
+                        <p class="card-text h4">
+                            ${{ total_deudas|default:"0" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Total Abonado</h6>
+                        <p class="card-text h4">
+                            ${{ total_abonado_general|default:"0" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Saldo Pendiente</h6>
+                        <p class="card-text h4">
+                            ${{ saldo_pendiente_total|default:"0" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-danger">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Deudas Vencidas</h6>
+                        <p class="card-text h4">
+                            {{ deudas_vencidas_count|default:"0" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Deudas -->
+        {% if deudas_con_info %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Descripción</th>
+                            <th>Monto Total</th>
+                            <th>Total Abonado</th>
+                            <th>Saldo Restante</th>
+                            <th>Fecha Creación</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in deudas_con_info %}
+                            <tr class="{% if item.esta_vencida %}table-danger{% elif item.deuda.pagada %}table-success{% endif %}">
+                                <td>
+                                    <strong>{{ item.deuda.cliente.nombre }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ item.deuda.cliente.correo }}</small>
+                                </td>
+                                <td>{{ item.deuda.descripcion|default:"Sin descripción" }}</td>
+                                <td><strong>${{ item.deuda.monto }}</strong></td>
+                                <td>${{ item.total_abonado|default:"0" }}</td>
+                                <td>
+                                    <span class="{% if item.saldo_restante > 0 %}text-danger fw-bold{% else %}text-success{% endif %}">
+                                        ${{ item.saldo_restante|default:item.deuda.monto }}
+                                    </span>
+                                </td>
+                                <td>{{ item.deuda.fecha }}</td>
+                                <td>
+                                    {% if item.deuda.pagada %}
+                                        <span class="badge bg-success">Pagada</span>
+                                    {% elif item.esta_vencida %}
+                                        <span class="badge bg-danger">Vencida</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not item.deuda.pagada %}
+                                        <!-- Botón para abonar -->
+                                        <button type="button" class="btn btn-primary btn-sm mb-1" data-bs-toggle="modal" data-bs-target="#abonoModal{{ item.deuda.id }}">
+                                            💰 Abonar
+                                        </button>
+                                        
+                                        <!-- Formulario para marcar como pagada -->
+                                        <form method="post" action="{% url 'marcar_como_pagada' item.deuda.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success btn-sm mb-1" onclick="return confirm('¿Marcar esta deuda como pagada?')">
+                                                ✅ Pagar Todo
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="text-success">✅ Liquidada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            <!-- Modal para abonos -->
+                            <div class="modal fade" id="abonoModal{{ item.deuda.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Registrar Abono</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="post" action="{% url 'agregar_abono' item.deuda.id %}">
+                                            {% csrf_token %}
+                                            <div class="modal-body">
+                                                <div class="alert alert-info">
+                                                    <strong>Cliente:</strong> {{ item.deuda.cliente.nombre }}<br>
+                                                    <strong>Deuda Total:</strong> ${{ item.deuda.monto }}<br>
+                                                    <strong>Saldo Restante:</strong> ${{ item.saldo_restante|default:item.deuda.monto }}
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="monto{{ item.deuda.id }}" class="form-label">Monto del Abono:</label>
+                                                    <input type="number" step="0.01" min="0.01" max="{{ item.saldo_restante|default:item.deuda.monto }}" 
+                                                           class="form-control" id="monto{{ item.deuda.id }}" name="monto" required
+                                                           placeholder="Ej: 50.00">
+                                                    <div class="form-text">Máximo permitido: ${{ item.saldo_restante|default:item.deuda.monto }}</div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="descripcion{{ item.deuda.id }}" class="form-label">Descripción:</label>
+                                                    <input type="text" class="form-control" id="descripcion{{ item.deuda.id }}" 
+                                                           name="descripcion" value="Abono a deuda - {{ item.deuda.descripcion|default:'Deuda pendiente' }}">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-primary">Registrar Abono</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                <h4>No hay deudas registradas</h4>
+                <p>No se encontraron deudas en el sistema.</p>
+                <a href="/admin/cartera/deuda/add/" class="btn btn-primary">Agregar Primera Deuda</a>
+            </div>
+        {% endif %}
+
+        <!-- Pie de página -->
+        <div class="mt-4 text-center text-muted">
+            <small>Sistema de Gestión de Cartera - {{ current_year }}</small>
+        </div>
+    </div>
+
+    <!-- Scripts de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script para actualizar año actual -->
+    <script>
+        // Actualizar año actual en el pie de página
+        document.addEventListener('DOMContentLoaded', function() {
+            const yearElements = document.querySelectorAll('.current-year');
+            const currentYear = new Date().getFullYear();
+            yearElements.forEach(element => {
+                element.textContent = currentYear;
+            });
+        });
+    </script>
+</body>
+</html>
