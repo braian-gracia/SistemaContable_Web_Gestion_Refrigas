@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from decouple import config
 import dj_database_url
+from django.db.backends.signals import connection_created
+from django.dispatch import receiver
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -112,6 +114,19 @@ AUTH0_DOMAIN = config('AUTH0_DOMAIN')
 AUTH0_CLIENT_ID = config('AUTH0_CLIENT_ID')
 AUTH0_CLIENT_SECRET = config('AUTH0_CLIENT_SECRET')
 AUTH0_CALLBACK_URL = config('AUTH0_CALLBACK_URL')
+
+
+# Forzar zona horaria en PostgreSQL
+@receiver(connection_created)
+def set_postgres_timezone(sender, connection, **kwargs):
+    """
+    Render/PostgreSQL siempre usa UTC por defecto.
+    Esto fuerza que todas las conexiones usen la zona horaria de Colombia.
+    Soluciona el problema de que el servidor cambia de día antes que tú.
+    """
+    if connection.vendor == 'postgresql':
+        with connection.cursor() as cursor:
+            cursor.execute("SET TIME ZONE 'America/Bogota';")
 
 
 
