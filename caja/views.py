@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.db.models import Sum
-from datetime import date, datetime
+from django.db.models.functions import TruncDate
+from datetime import datetime
 from .models import Transaccion, CierreCaja, TipoTransaccion
 from .serializers import TransaccionSerializer, CierreCajaSerializer
 
@@ -17,20 +18,27 @@ class TransaccionViewSet(viewsets.ModelViewSet):
         queryset = Transaccion.objects.all()
         fecha = self.request.query_params.get('fecha', None)
         if fecha:
-            queryset = queryset.filter(fecha__date=fecha)
+            queryset = queryset.annotate(
+                fecha_local=TruncDate('fecha', tzinfo=timezone.get_current_timezone())
+            ).filter(fecha_local=fecha)
         return queryset
-    
+
     @action(detail=False, methods=['get'])
     def resumen_diario(self, request):
-        fecha_param = request.query_params.get('fecha', date.today())
-        if isinstance(fecha_param, str):
+        fecha_param = request.query_params.get('fecha', None)
+
+        if fecha_param:
             try:
                 fecha_param = datetime.strptime(fecha_param, '%Y-%m-%d').date()
             except:
-                fecha_param = date.today()
-        
-        transacciones = Transaccion.objects.filter(fecha__date=fecha_param)
-        
+                fecha_param = timezone.localdate()
+        else:
+            fecha_param = timezone.localdate()
+
+        transacciones = Transaccion.objects.annotate(
+            fecha_local=TruncDate('fecha', tzinfo=timezone.get_current_timezone())
+        ).filter(fecha_local=fecha_param)
+
         resumen = {
             'fecha': fecha_param,
             'ventas_facturadas': transacciones.filter(
@@ -44,14 +52,13 @@ class TransaccionViewSet(viewsets.ModelViewSet):
             ).aggregate(Sum('monto'))['monto__sum'] or 0,
             'total_transacciones': transacciones.count()
         }
-        
         resumen['total'] = (
-            resumen['ventas_facturadas'] + 
-            resumen['ventas_no_facturadas'] + 
+            resumen['ventas_facturadas'] +
+            resumen['ventas_no_facturadas'] +
             resumen['otros_ingresos']
         )
-        
         return Response(resumen)
+
 
 class CierreCajaViewSet(viewsets.ModelViewSet):
     serializer_class = CierreCajaSerializer
@@ -62,7 +69,8 @@ class CierreCajaViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def crear_cierre_hoy(self, request):
-        fecha_hoy = date.today()
+        fecha_hoy = timezone.localdate()
+
         cierre_existente = CierreCaja.objects.filter(fecha=fecha_hoy).first()
         if cierre_existente:
             return Response({

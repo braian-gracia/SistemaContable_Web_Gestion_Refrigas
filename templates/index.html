@@ -554,7 +554,7 @@
             contenido.style.display = 'none';
 
             try {
-                const fecha = new Date().toISOString().split('T')[0];
+                const fecha = new Date().toLocaleDateString('en-CA');
                 const response = await fetch(`${API_BASE}/transacciones/?fecha=${fecha}`);
                 
                 if (response.ok) {
