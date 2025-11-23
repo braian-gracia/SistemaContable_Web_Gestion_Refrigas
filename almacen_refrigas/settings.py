@@ -130,15 +130,28 @@ def set_postgres_timezone(sender, connection, **kwargs):
 
 
 # ====== CONFIGURACIÓN DE EMAIL ======
-if DEBUG:
-    # En desarrollo, mostrar emails en consola
+SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')
+
+if DEBUG and SENDGRID_API_KEY:
+    # En desarrollo con SendGrid configurado, usar SMTP
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.sendgrid.net'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'apikey'
+    EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+elif DEBUG:
+    # En desarrollo sin SendGrid, mostrar en consola
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    # En producción, usar SendGrid
-    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-    SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')
-    SENDGRID_SANDBOX_MODE_IN_DEBUG = False
-
+    # En producción, usar SMTP de SendGrid
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.sendgrid.net'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'apikey'
+    EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+    
 # Configuración del remitente
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='braiansgracia@gmail.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL

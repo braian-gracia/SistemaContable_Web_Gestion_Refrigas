@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api/', include('caja.urls')),
+    path('api/', include('cartera.api_urls')),
     path('cartera/', include('cartera.urls')),
     
     path('reportes/', include('reportes.urls')),
