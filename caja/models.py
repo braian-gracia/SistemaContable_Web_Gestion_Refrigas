@@ -2,11 +2,14 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.utils import timezone
+from django.db.models.functions import TruncDate
 
 class TipoTransaccion(models.TextChoices):
     VENTA_FACTURADA = 'VF', 'Venta Facturada'
     VENTA_NO_FACTURADA = 'VNF', 'Venta No Facturada'
     INGRESO_OTRO = 'IO', 'Otro Ingreso'
+
 
 class Transaccion(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
@@ -32,6 +35,7 @@ class Transaccion(models.Model):
     def __str__(self):
         return f"{self.get_tipo_display()} - ${self.monto} ({self.fecha.strftime('%Y-%m-%d %H:%M')})"
 
+
 class CierreCaja(models.Model):
     fecha = models.DateField(unique=True)
     total_ventas_facturadas = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -55,29 +59,30 @@ class CierreCaja(models.Model):
     
     def calcular_totales(self):
         from django.db.models import Sum
-        transacciones_del_dia = Transaccion.objects.filter(
-            fecha__date=self.fecha
-        )
-        
+
+        transacciones_del_dia = Transaccion.objects.annotate(
+            fecha_local=TruncDate('fecha', tzinfo=timezone.get_current_timezone())
+        ).filter(fecha_local=self.fecha)
+
         self.total_ventas_facturadas = transacciones_del_dia.filter(
             tipo=TipoTransaccion.VENTA_FACTURADA
         ).aggregate(Sum('monto'))['monto__sum'] or Decimal('0.00')
-        
+
         self.total_ventas_no_facturadas = transacciones_del_dia.filter(
             tipo=TipoTransaccion.VENTA_NO_FACTURADA
         ).aggregate(Sum('monto'))['monto__sum'] or Decimal('0.00')
-        
+
         self.total_otros_ingresos = transacciones_del_dia.filter(
             tipo=TipoTransaccion.INGRESO_OTRO
         ).aggregate(Sum('monto'))['monto__sum'] or Decimal('0.00')
-        
+
         self.total_calculado = (
-            self.total_ventas_facturadas + 
-            self.total_ventas_no_facturadas + 
+            self.total_ventas_facturadas +
+            self.total_ventas_no_facturadas +
             self.total_otros_ingresos
         )
-        
+
         if self.total_fisico is not None:
             self.diferencia = self.total_fisico - self.total_calculado
 
-            self.save()
+        self.save()
