@@ -1,0 +1,24 @@
+RECORDATORIO DE PAGO - DEUDA VENCIDA
+
+Estimado/a {{ cliente_nombre }},
+
+Le recordamos que tiene una deuda pendiente con nuestra empresa que ha vencido.
+
+Detalles de la deuda:
+- Descripción: {{ descripcion }}
+- Monto total: ${{ monto_deuda }}
+- Saldo pendiente: ${{ saldo_restante }}
+- Fecha de vencimiento: {{ fecha_vencimiento|date:"d/m/Y" }}
+- Días vencidos: {{ dias_vencidos }} días
+
+Le solicitamos regularizar su situación a la brevedad posible para evitar inconvenientes.
+
+Si ya realizó el pago, por favor ignore este mensaje o contáctenos para confirmar la recepción.
+
+Quedamos a su disposición para cualquier consulta.
+
+Saludos cordiales,
+Almacén Refrigas
+
+---
+Este es un mensaje automático, por favor no responda a este correo.

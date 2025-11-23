@@ -1,0 +1,21 @@
+ALERTA: CLIENTE CON DEUDA VENCIDA
+
+ATENCIÓN: Un cliente ha excedido el límite de tiempo para pagar su deuda.
+
+INFORMACIÓN DEL CLIENTE:
+- Nombre: {{ cliente_nombre }}
+- Correo: {{ cliente_correo }}
+- Teléfono: {{ cliente_telefono|default:"No registrado" }}
+
+DETALLES DE LA DEUDA:
+- Descripción: {{ descripcion }}
+- Monto total: ${{ monto_deuda }}
+- Saldo pendiente: ${{ saldo_restante }}
+- Fecha de vencimiento: {{ fecha_vencimiento|date:"d/m/Y" }}
+- Días vencidos: {{ dias_vencidos }} días
+
+ACCIÓN RECOMENDADA: Contactar al cliente para gestionar el pago de la deuda.
+
+---
+Sistema de Gestión - Almacén Refrigas
+Notificación automática

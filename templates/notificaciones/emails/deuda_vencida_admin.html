@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerta: Deuda Vencida</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            margin: -30px -30px 20px -30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .alert-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .client-info {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Alerta: Cliente con Deuda Vencida</h1>
+        </div>
+        
+        <div class="alert-box">
+            <p><strong>⚠️ ATENCIÓN:</strong> Un cliente ha excedido el límite de tiempo para pagar su deuda.</p>
+        </div>
+        
+        <div class="client-info">
+            <h3 style="margin-top: 0;">Información del Cliente</h3>
+            <table>
+                <tr>
+                    <th>Nombre:</th>
+                    <td><strong>{{ cliente_nombre }}</strong></td>
+                </tr>
+                <tr>
+                    <th>Correo:</th>
+                    <td>{{ cliente_correo }}</td>
+                </tr>
+                <tr>
+                    <th>Teléfono:</th>
+                    <td>{{ cliente_telefono|default:"No registrado" }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <h3>Detalles de la Deuda</h3>
+        <table>
+            <tr>
+                <th>Descripción:</th>
+                <td>{{ descripcion }}</td>
+            </tr>
+            <tr>
+                <th>Monto total:</th>
+                <td>${{ monto_deuda|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <th>Saldo pendiente:</th>
+                <td><span class="amount">${{ saldo_restante|floatformat:2 }}</span></td>
+            </tr>
+            <tr>
+                <th>Fecha vencimiento:</th>
+                <td>{{ fecha_vencimiento|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <th>Días vencidos:</th>
+                <td><strong style="color: #ff6b6b;">{{ dias_vencidos }} días</strong></td>
+            </tr>
+        </table>
+        
+        <p><strong>Acción recomendada:</strong> Contactar al cliente para gestionar el pago de la deuda.</p>
+        
+        <div class="footer">
+            <p>Sistema de Gestión - Almacén Refrigas<br>
+            Notificación automática enviada el {% now "d/m/Y H:i" %}</p>
+        </div>
+    </div>
+</body>
+</html>

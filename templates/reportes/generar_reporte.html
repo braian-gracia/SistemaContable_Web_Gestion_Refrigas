@@ -1,0 +1,255 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Reportes - Sistema de Gestión</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .card-icon {
+            font-size: 40px;
+            margin-right: 15px;
+        }
+        .card-title {
+            font-size: 24px;
+            color: #333;
+        }
+        .card-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .btn-secondary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .btn-success:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+        .back-btn {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← Volver al inicio</a>
+        
+        <div class="header">
+            <h1>📊 Generador de Reportes</h1>
+            <p>Exporta información detallada en formato Excel</p>
+        </div>
+        
+        <div class="cards-grid">
+            <!-- Reporte General -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📋</div>
+                    <h2 class="card-title">Reporte General</h2>
+                </div>
+                <p class="card-description">
+                    Reporte completo de todas las deudas con información detallada,
+                    totales y estados. Incluye filtros personalizables.
+                </p>
+                
+                <form action="{% url 'reportes:descargar_general' %}" method="GET">
+                    <div class="form-group">
+                        <label>Fecha Inicio:</label>
+                        <input type="date" name="fecha_inicio">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Fecha Fin:</label>
+                        <input type="date" name="fecha_fin">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Cliente (opcional):</label>
+                        <select name="cliente_id">
+                            <option value="">Todos los clientes</option>
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="incluir_pagadas" id="incluir_pagadas">
+                        <label for="incluir_pagadas">Incluir deudas pagadas</label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        📥 Descargar Reporte General
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Reporte de Clientes -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">👥</div>
+                    <h2 class="card-title">Reporte de Clientes</h2>
+                </div>
+                <p class="card-description">
+                    Listado completo de clientes con estadísticas de deudas,
+                    montos adeudados y totales pagados.
+                </p>
+                
+                <div style="height: 100px; display: flex; align-items: center; justify-content: center; color: #999; margin: 20px 0;">
+                    No requiere filtros adicionales
+                </div>
+                
+                <a href="{% url 'reportes:descargar_clientes' %}" class="btn btn-secondary">
+                    📥 Descargar Reporte de Clientes
+                </a>
+            </div>
+            
+            <!-- Reporte de Abonos -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">💰</div>
+                    <h2 class="card-title">Reporte de Abonos</h2>
+                </div>
+                <p class="card-description">
+                    Historial completo de todos los abonos realizados
+                    con totales y estados de deudas.
+                </p>
+                
+                <form action="{% url 'reportes:descargar_abonos' %}" method="GET">
+                    <div class="form-group">
+                        <label>Fecha Inicio:</label>
+                        <input type="date" name="fecha_inicio">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Fecha Fin:</label>
+                        <input type="date" name="fecha_fin">
+                    </div>
+                    
+                    <div style="height: 20px;"></div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        📥 Descargar Reporte de Abonos
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
