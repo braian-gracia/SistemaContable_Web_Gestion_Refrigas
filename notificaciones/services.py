@@ -15,9 +15,24 @@ class NotificacionService:
     def enviar_email(asunto, destinatario, contexto, template_name):
         """Envía un email usando templates HTML"""
         try:
-            html_content = render_to_string(f'notificaciones/emails/{template_name}', contexto)
-            text_content = render_to_string(f'notificaciones/emails/{template_name.replace(".html", ".txt")}', contexto)
+            print(f"🔵 Intentando enviar email a: {destinatario}")
+            print(f"🔵 Asunto: {asunto}")
+            print(f"🔵 Remitente: {settings.DEFAULT_FROM_EMAIL}")
+            print(f"🔵 Backend: {settings.EMAIL_BACKEND}")
             
+            # Renderizar template HTML
+            html_content = render_to_string(f'notificaciones/emails/{template_name}', contexto)
+            
+            # Intentar renderizar versión texto plano (opcional)
+            try:
+                text_content = render_to_string(
+                    f'notificaciones/emails/{template_name.replace(".html", ".txt")}', 
+                    contexto
+                )
+            except Exception:
+                text_content = f"Por favor, revisa este correo en un cliente que soporte HTML."
+            
+            # Crear y enviar email
             email = EmailMultiAlternatives(
                 subject=asunto,
                 body=text_content,
@@ -25,11 +40,19 @@ class NotificacionService:
                 to=[destinatario]
             )
             email.attach_alternative(html_content, "text/html")
-            email.send()
+            
+            # Enviar con manejo de errores
+            email.send(fail_silently=False)
+            
+            print(f"✅ Email enviado exitosamente a {destinatario}")
+            logger.info(f"✅ Email enviado exitosamente a {destinatario}")
             return True, None
+            
         except Exception as e:
-            logger.error(f"Error enviando email a {destinatario}: {str(e)}")
-            return False, str(e)
+            error_msg = f"Error enviando email a {destinatario}: {str(e)}"
+            print(f"❌ {error_msg}")
+            logger.error(f"❌ {error_msg}")
+            return False, error_msg
     
     @staticmethod
     def notificar_deuda_vencida_cliente(deuda):
