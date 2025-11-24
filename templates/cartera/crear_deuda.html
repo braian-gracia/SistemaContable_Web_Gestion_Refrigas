@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Deuda - Almacén Refrigas</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .header-title h1 {
+            color: #764ba2;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .header-title p {
+            color: #666;
+            font-size: 1em;
+            margin-top: 5px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            margin-bottom: 30px;
+        }
+
+        .card h2 {
+            color: #764ba2;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .info-box-icon {
+            font-size: 32px;
+        }
+
+        .info-box-content h3 {
+            margin-bottom: 5px;
+            font-size: 1.2em;
+        }
+
+        .info-box-content p {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .header-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-title h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">🏪</div>
+                <div class="header-title">
+                    <h1>Almacén Refrigas</h1>
+                    <p>Nueva Deuda</p>
+                </div>
+            </div>
+            <div class="header-buttons">
+                <a href="/cartera/" class="btn btn-secondary">← Volver a Cartera</a>
+                <a href="/cartera/gestionar-deudores/" class="btn btn-success">👥 Gestionar Deudores</a>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <div class="info-box-icon">💳</div>
+            <div class="info-box-content">
+                <h3>Registrar Nueva Deuda</h3>
+                <p>Complete el formulario para registrar una nueva deuda en el sistema</p>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <div id="alert-success" class="alert alert-success"></div>
+        <div id="alert-danger" class="alert alert-danger"></div>
+
+        <!-- Formulario -->
+        <div class="card">
+            <h2>📝 Información de la Deuda</h2>
+            
+            <form id="form-nueva-deuda">
+                <div class="form-grid">
+                    <!-- Cliente/Deudor -->
+                    <div class="form-group">
+                        <label for="cliente">Cliente/Deudor *</label>
+                        <select id="cliente" name="cliente" required>
+                            <option value="">Seleccione un cliente...</option>
+                            <!-- Los clientes se cargarán dinámicamente desde la API -->
+                        </select>
+                    </div>
+
+                    <!-- Monto Total -->
+                    <div class="form-group">
+                        <label for="monto">Monto Total ($) *</label>
+                        <input type="number" id="monto" name="monto" step="0.01" min="0.01" required placeholder="Ej: 50000">
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="form-group full-width">
+                        <label for="descripcion">Descripción *</label>
+                        <textarea id="descripcion" name="descripcion" required placeholder="Ej: Compra de mercancía, Préstamo personal, etc."></textarea>
+                    </div>
+
+                    <!-- Fecha de Creación -->
+                    <div class="form-group">
+                        <label for="fecha_creacion">Fecha de Creación *</label>
+                        <input type="date" id="fecha_creacion" name="fecha_creacion" required>
+                    </div>
+
+                    <!-- Fecha Límite de Pago -->
+                    <div class="form-group">
+                        <label for="fecha_limite">Fecha Límite de Pago *</label>
+                        <input type="date" id="fecha_limite" name="fecha_limite" required>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="form-group">
+                        <label for="estado">Estado *</label>
+                        <select id="estado" name="estado" required>
+                            <option value="PENDIENTE">Pendiente</option>
+                            <option value="VENCIDA">Vencida</option>
+                            <option value="PAGADA">Pagada</option>
+                        </select>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="form-group full-width">
+                        <label for="observaciones">Observaciones</label>
+                        <textarea id="observaciones" name="observaciones" rows="4" placeholder="Información adicional sobre la deuda (opcional)"></textarea>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="limpiarFormulario()">🗑️ Limpiar</button>
+                    <button type="submit" class="btn btn-primary">💾 Guardar Deuda</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de la API
+        const API_BASE = '/api';
+
+        // Establecer fecha de hoy por defecto
+        document.addEventListener('DOMContentLoaded', function() {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha_creacion').value = hoy;
+            
+            cargarClientes();
+        });
+
+        // Función para obtener el token CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Función para mostrar alertas
+        function mostrarAlerta(mensaje, tipo = 'success') {
+            const alertElement = document.getElementById(`alert-${tipo}`);
+            alertElement.textContent = mensaje;
+            alertElement.style.display = 'block';
+            
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Función para cargar clientes desde la API
+        async function cargarClientes() {
+            try {
+                const response = await fetch(`${API_BASE}/clientes/`);
+                if (response.ok) {
+                    const clientes = await response.json();
+                    const selectCliente = document.getElementById('cliente');
+                    
+                    // Limpiar opciones existentes excepto la primera
+                    selectCliente.innerHTML = '<option value="">Seleccione un cliente...</option>';
+                    
+                    // Agregar clientes
+                    clientes.forEach(cliente => {
+                        const option = document.createElement('option');
+                        option.value = cliente.id;
+                        option.textContent = `${cliente.nombre} - ${cliente.correo || cliente.telefono || ''}`;
+                        selectCliente.appendChild(option);
+                    });
+                } else {
+                    console.error('Error al cargar clientes');
+                }
+            } catch (error) {
+                console.error('Error de conexión:', error);
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('form-nueva-deuda').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                cliente: document.getElementById('cliente').value,
+                monto: parseFloat(document.getElementById('monto').value),
+                descripcion: document.getElementById('descripcion').value,
+                fecha_creacion: document.getElementById('fecha_creacion').value,
+                fecha_vencimiento: document.getElementById('fecha_limite').value,
+                estado: document.getElementById('estado').value,
+                observaciones: document.getElementById('observaciones').value || null
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/deudas/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    mostrarAlerta('✅ Deuda registrada exitosamente', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/cartera/';
+                    }, 2000);
+                } else {
+                    const error = await response.json();
+                    mostrarAlerta('❌ Error al registrar deuda: ' + JSON.stringify(error), 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Error de conexión: ' + error.message, 'danger');
+            }
+        });
+
+        // Función para limpiar el formulario
+        function limpiarFormulario() {
+            document.getElementById('form-nueva-deuda').reset();
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha_creacion').value = hoy;
+        }
+    </script>
+</body>
+</html>

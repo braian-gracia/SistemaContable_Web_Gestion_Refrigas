@@ -11,7 +11,10 @@ Desarrollado con **Python 3.11.9**, **Django 4.2.7** y base de datos **PostgreSQ
 - Control de egresos, gastos y pagos por datáfono  
 - Cálculo automático de sobrantes y faltantes en cierre de caja  
 - Gestión de cartera y pagos pendientes  
+- **Gestión completa de deudores (crear, editar, eliminar)**
+- **Sistema de creación y seguimiento de deudas**
 - Alertas de vencimiento (considerando días del mes y años bisiestos)  
+- **Envío de anuncios y notificaciones de deuda**
 - Reportes exportables en PDF y XLS  
 - Historial de movimientos con filtros por rango de fechas  
 - Sistema de usuarios con roles  
@@ -25,11 +28,22 @@ El proyecto está organizado por módulos (apps) en Django:
 
 ```
 /caja                  → Registro de ingresos/egresos y cierres diarios
-/cartera               → Gestión de cartera y pagos pendientes
+/cartera               → Gestión de cartera, deudas y deudores
 /gestion_usuarios      → Administración de usuarios y roles
-/notificaciones        → Alertas internas del sistema
+/notificaciones        → Alertas internas y envío de anuncios de deuda
 /reportes              → Generación y exportación de reportes
 ```
+
+## Páginas HTML principales
+
+**Módulo de Cartera:**
+- `crear_deuda.html` - Formulario para registrar nuevas deudas
+- `gestionar_deudores.html` - CRUD completo de deudores
+
+**Módulo de Notificaciones:**
+- `historial.html` - Historial de notificaciones enviadas
+- `enviar_anuncio_deuda.html` - Envío de anuncios y recordatorios de pago
+
 ---
 
 # Tecnologías y versiones
@@ -146,8 +160,15 @@ http://127.0.0.1:8000/
 
 ## Cartera
 - Control de pagos pendientes  
+- **Gestión completa de deudores (CRUD)**
+- **Creación y seguimiento de deudas**
 - Abonos y fechas límite  
 - Alertas por vencimientos  
+
+## Notificaciones
+- **Envío de anuncios de deuda a clientes**
+- **Historial de notificaciones enviadas**
+- Alertas del sistema
 
 ## Reportes
 - Reportes diarios y mensuales  

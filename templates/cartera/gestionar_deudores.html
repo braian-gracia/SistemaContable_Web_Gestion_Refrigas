@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Deudores - Almacén Refrigas</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .header-title h1 {
+            color: #764ba2;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .header-title p {
+            color: #666;
+            font-size: 1em;
+            margin-top: 5px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            margin-bottom: 30px;
+        }
+
+        .card h2 {
+            color: #764ba2;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        /* Tabla de deudores */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .deudores-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .deudores-table th,
+        .deudores-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .deudores-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85em;
+        }
+
+        .deudores-table tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        .deudores-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-style: italic;
+            font-size: 1.1em;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto; 
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .close {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .close:hover {
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #764ba2;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .header-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .header-title h1 {
+                font-size: 1.5em;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .deudores-table {
+                font-size: 0.9em;
+            }
+
+            .deudores-table th,
+            .deudores-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">👥</div>
+                <div class="header-title">
+                    <h1>Almacén Refrigas</h1>
+                    <p>Gestión de Deudores</p>
+                </div>
+            </div>
+            <div class="header-buttons">
+                <a href="/cartera/" class="btn btn-secondary">← Volver a Cartera</a>
+                <a href="/cartera/crear-deuda/" class="btn btn-success">💳 Nueva Deuda</a>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <div id="alert-success" class="alert alert-success"></div>
+        <div id="alert-danger" class="alert alert-danger"></div>
+
+        <!-- Lista de Deudores -->
+        <div class="card">
+            <h2>
+                <span>📋 Lista de Deudores</span>
+                <button class="btn btn-primary" onclick="abrirModalNuevo()">➕ Nuevo Deudor</button>
+            </h2>
+            
+            <div id="loading" class="loading">Cargando deudores...</div>
+            
+            <div id="tabla-container" style="display: none;">
+                <div class="table-container">
+                    <table class="deudores-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Dirección</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deudores-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">👤</div>
+                <h3>No hay deudores registrados</h3>
+                <p>Agrega tu primer deudor haciendo clic en "Nuevo Deudor"</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Deudor -->
+    <div id="modal-deudor" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-titulo">Nuevo Deudor</h3>
+                <span class="close" onclick="cerrarModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="form-deudor">
+                    <input type="hidden" id="deudor-id">
+                    
+                    <div class="form-group">
+                        <label for="nombre">Nombre Completo *</label>
+                        <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required placeholder="ejemplo@correo.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefono">Teléfono *</label>
+                        <input type="tel" id="telefono" name="telefono" required placeholder="Ej: 3001234567">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="direccion">Dirección</label>
+                        <input type="text" id="direccion" name="direccion" placeholder="Ej: Calle 123 #45-67">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notas">Notas Adicionales</label>
+                        <textarea id="notas" name="notas" rows="3" placeholder="Información adicional sobre el deudor (opcional)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarDeudor()">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de la API
+        const API_BASE = '/api';
+        let deudorEditando = null;
+
+        // Función para obtener el token CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Función para mostrar alertas
+        function mostrarAlerta(mensaje, tipo = 'success') {
+            const alertElement = document.getElementById(`alert-${tipo}`);
+            alertElement.textContent = mensaje;
+            alertElement.style.display = 'block';
+            
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Cargar deudores al iniciar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarDeudores();
+        });
+
+        // Función para cargar deudores
+        async function cargarDeudores() {
+            const loading = document.getElementById('loading');
+            const tablaContainer = document.getElementById('tabla-container');
+            const emptyState = document.getElementById('empty-state');
+            const tbody = document.getElementById('deudores-tbody');
+            
+            loading.style.display = 'block';
+            tablaContainer.style.display = 'none';
+            emptyState.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/clientes/`);
+                
+                if (response.ok) {
+                    const deudores = await response.json();
+                    tbody.innerHTML = '';
+
+                    if (deudores.length > 0) {
+                        deudores.forEach(deudor => {
+                            const fila = document.createElement('tr');
+                            fila.innerHTML = `
+                                <td><strong>${deudor.nombre}</strong></td>
+                                <td>${deudor.correo || '-'}</td>
+                                <td>${deudor.telefono || '-'}</td>
+                                <td>${deudor.direccion || '-'}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" onclick="editarDeudor(${deudor.id})">✏️ Editar</button>
+                                    <button class="btn btn-danger btn-sm" onclick="eliminarDeudor(${deudor.id}, '${deudor.nombre}')">🗑️ Eliminar</button>
+                                </td>
+                            `;
+                            tbody.appendChild(fila);
+                        });
+                        
+                        tablaContainer.style.display = 'block';
+                    } else {
+                        emptyState.style.display = 'block';
+                    }
+                    
+                    loading.style.display = 'none';
+                } else {
+                    mostrarAlerta('Error al cargar deudores', 'danger');
+                    loading.style.display = 'none';
+                }
+            } catch (error) {
+                mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+                loading.style.display = 'none';
+            }
+        }
+
+        // Abrir modal para nuevo deudor
+        function abrirModalNuevo() {
+            deudorEditando = null;
+            document.getElementById('modal-titulo').textContent = 'Nuevo Deudor';
+            document.getElementById('form-deudor').reset();
+            document.getElementById('deudor-id').value = '';
+            document.getElementById('modal-deudor').style.display = 'block';
+        }
+
+        // Editar deudor
+        async function editarDeudor(id) {
+            try {
+                const response = await fetch(`${API_BASE}/clientes/${id}/`);
+                if (response.ok) {
+                    const deudor = await response.json();
+                    deudorEditando = id;
+                    
+                    document.getElementById('modal-titulo').textContent = 'Editar Deudor';
+                    document.getElementById('deudor-id').value = id;
+                    document.getElementById('nombre').value = deudor.nombre;
+                    document.getElementById('email').value = deudor.correo || '';
+                    document.getElementById('telefono').value = deudor.telefono || '';
+                    document.getElementById('direccion').value = deudor.direccion || '';
+                    document.getElementById('notas').value = deudor.notas || '';
+                    
+                    document.getElementById('modal-deudor').style.display = 'block';
+                } else {
+                    mostrarAlerta('Error al cargar datos del deudor', 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+            }
+        }
+
+        // Guardar deudor (crear o editar)
+        async function guardarDeudor() {
+            const form = document.getElementById('form-deudor');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const formData = {
+                nombre: document.getElementById('nombre').value,
+                correo: document.getElementById('email').value, 
+                telefono: document.getElementById('telefono').value,
+                direccion: document.getElementById('direccion').value || null,
+                notas: document.getElementById('notas').value || null
+            };
+
+            const deudorId = document.getElementById('deudor-id').value;
+            const url = deudorId ? `${API_BASE}/clientes/${deudorId}/` : `${API_BASE}/clientes/`;
+            const method = deudorId ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    mostrarAlerta(deudorId ? '✅ Deudor actualizado exitosamente' : '✅ Deudor creado exitosamente', 'success');
+                    cerrarModal();
+                    cargarDeudores();
+                } else {
+                    const error = await response.json();
+                    mostrarAlerta('❌ Error al guardar: ' + JSON.stringify(error), 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Error de conexión: ' + error.message, 'danger');
+            }
+        }
+
+        // Eliminar deudor
+        async function eliminarDeudor(id, nombre) {
+            if (!confirm(`¿Está seguro de eliminar al deudor "${nombre}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/clientes/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                if (response.ok) {
+                    mostrarAlerta('✅ Deudor eliminado exitosamente', 'success');
+                    cargarDeudores();
+                } else {
+                    mostrarAlerta('❌ Error al eliminar deudor', 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Error de conexión: ' + error.message, 'danger');
+            }
+        }
+
+        // Cerrar modal
+        function cerrarModal() {
+            document.getElementById('modal-deudor').style.display = 'none';
+            document.getElementById('form-deudor').reset();
+            deudorEditando = null;
+        }
+
+        // Cerrar modal al hacer clic fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal-deudor');
+            if (event.target == modal) {
+                cerrarModal();
+            }
+        }
+    </script>
+</body>
+</html>

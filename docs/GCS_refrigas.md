@@ -711,6 +711,192 @@ git fetch --all
 
 ---
 
+---
+
+## 13.4 Nuevas Páginas HTML (Noviembre 2024)
+
+### 13.4.1 Módulo de Cartera - Gestión de Deudas
+
+**Archivo:** `/templates/cartera/crear_deuda.html`  
+**Responsable:** Equipo de desarrollo  
+**Propósito:** Página para registrar nuevas deudas en el sistema  
+**Características:**
+- Formulario completo para crear deudas
+- Selección de cliente/deudor desde base de datos
+- Campos: monto, descripción, fechas, estado, observaciones
+- Validación de datos en tiempo real
+- Integración con API REST
+- Navegación a gestión de deudores
+- Estilo consistente con gradientes morados
+
+**Archivo:** `/templates/cartera/gestionar_deudores.html`  
+**Responsable:** Equipo de desarrollo  
+**Propósito:** CRUD completo para gestión de deudores/clientes  
+**Características:**
+- Listado de todos los deudores
+- Modal para crear nuevo deudor
+- Edición de deudores existentes
+- Eliminación con confirmación
+- Campos: nombre, email, teléfono, dirección, notas
+- Tabla responsive con acciones por fila
+- Búsqueda y filtrado (futuro)
+
+### 13.4.2 Módulo de Notificaciones - Anuncios de Deuda
+
+**Archivo:** `/templates/notificaciones/enviar_anuncio_deuda.html`  
+**Responsable:** Equipo de desarrollo  
+**Propósito:** Envío de notificaciones y recordatorios de pago a clientes  
+**Características:**
+- Plantillas predefinidas (recordatorio, urgente, confirmación)
+- Selección de destinatario individual o masivo
+- Tipos de envío: Email, SMS, WhatsApp
+- Asunto y mensaje personalizable
+- Vista previa del mensaje
+- Programación de envío
+- Niveles de prioridad
+- Integración con API de notificaciones
+
+**Archivo:** `/templates/notificaciones/historial.html`  
+**Responsable:** Equipo de desarrollo  
+**Propósito:** Visualización del historial de notificaciones enviadas  
+**Estado:** Existente, sin cambios mayores
+
+### 13.4.3 Estándares de Diseño Aplicados
+
+Todas las nuevas páginas siguen estos estándares:
+
+**Estilo Visual:**
+- Gradientes morados (#667eea a #764ba2)
+- Glassmorphism (fondos translúcidos con backdrop-filter)
+- Bordes redondeados (border-radius: 10-20px)
+- Sombras suaves (box-shadow)
+- Transiciones animadas (transform, hover effects)
+
+**Responsividad:**
+- Breakpoint principal: 768px
+- Grid responsive con `grid-template-columns`
+- Botones adaptables a pantallas pequeñas
+- Fuentes escalables
+
+**Navegación:**
+- Botones de retorno a páginas principales
+- Enlaces cruzados entre módulos relacionados
+- Breadcrumbs implícitos en headers
+
+**Interactividad:**
+- Alertas de éxito/error temporales (5 segundos)
+- Confirmaciones para acciones destructivas
+- Loading states durante llamadas API
+- Validación de formularios en tiempo real
+
+### 13.4.4 Integración con Backend
+
+Las nuevas páginas HTML se integran con la API REST mediante:
+
+**Endpoints utilizados:**
+- `GET /api/clientes/` - Listar deudores
+- `POST /api/clientes/` - Crear deudor
+- `PUT /api/clientes/{id}/` - Actualizar deudor
+- `DELETE /api/clientes/{id}/` - Eliminar deudor
+- `GET /api/deudas/` - Listar deudas
+- `POST /api/deudas/` - Crear deuda
+- `POST /api/notificaciones/enviar/` - Enviar notificación
+
+**Métodos HTTP:** GET, POST, PUT, DELETE  
+**Formato:** JSON  
+**Autenticación:** CSRF Token (Django)  
+
+### 13.4.5 Navegación del Sistema Actualizada
+
+```
+Dashboard Caja (/)
+├── Cerrar sesión
+├── Ir a Cartera → /cartera/
+├── 📋 Historial → /notificaciones/historial/
+└── 📢 Enviar Anuncio → /notificaciones/enviar-anuncio/
+
+Cartera (/cartera/)
+├── NUEVA DEUDA → /cartera/crear-deuda/
+├── Acciones por deuda (Abonar, Pagar)
+└── Volver a Caja
+
+Crear Deuda (/cartera/crear-deuda/)
+├── 👥 Gestionar Deudores → /cartera/gestionar-deudores/
+├── Formulario de nueva deuda
+└── Volver a Cartera
+
+Gestionar Deudores (/cartera/gestionar-deudores/)
+├── ➕ Nuevo Deudor (Modal)
+├── ✏️ Editar (por fila)
+├── 🗑️ Eliminar (por fila)
+├── 💳 Nueva Deuda → /cartera/crear-deuda/
+└── Volver a Cartera
+
+Notificaciones (/notificaciones/)
+├── 📋 Ver Historial → /notificaciones/historial/
+├── 📢 Enviar Anuncio → /notificaciones/enviar-anuncio/
+└── Volver a Cartera
+
+Enviar Anuncio (/notificaciones/enviar-anuncio/)
+├── Plantillas rápidas
+├── Formulario de envío
+├── 📋 Ver Historial → /notificaciones/historial/
+└── Volver a Cartera
+```
+
+### 13.4.6 Control de Versiones de Páginas HTML
+
+**Versionado de Templates:**
+- Los archivos HTML siguen el versionado del repositorio Git
+- Cambios en templates requieren commit con mensaje descriptivo
+- Formato: `feat(templates): descripción del cambio`
+
+**Ejemplo:**
+```bash
+git add templates/cartera/crear_deuda.html
+git commit -m "feat(templates): agregar página de creación de deudas con formulario completo"
+```
+
+### 13.4.7 Testing de Nuevas Páginas
+
+**Pruebas manuales requeridas:**
+- [ ] Carga correcta de la página
+- [ ] Formularios envían datos correctamente
+- [ ] Validaciones funcionan
+- [ ] Navegación entre páginas
+- [ ] Responsive en móvil/tablet/desktop
+- [ ] Alertas se muestran correctamente
+- [ ] Integración con API funcional
+
+**Checklist de QA:**
+```markdown
+## Página: crear_deuda.html
+- [ ] Formulario carga clientes desde API
+- [ ] Validación de campos obligatorios
+- [ ] Envío exitoso crea deuda
+- [ ] Redirección a cartera después de guardar
+- [ ] Botón "Limpiar" funciona
+- [ ] Navegación a gestionar deudores
+
+## Página: gestionar_deudores.html
+- [ ] Tabla carga deudores desde API
+- [ ] Modal de nuevo deudor abre/cierra
+- [ ] Crear deudor funciona
+- [ ] Editar deudor carga datos y guarda cambios
+- [ ] Eliminar deudor solicita confirmación
+- [ ] Estado vacío se muestra correctamente
+
+## Página: enviar_anuncio_deuda.html
+- [ ] Plantillas cargan contenido correcto
+- [ ] Vista previa actualiza en tiempo real
+- [ ] Selector de clientes incluye opción "Todos"
+- [ ] Envío inmediato funciona
+- [ ] Programar envío guarda fecha/hora
+- [ ] Navegación a historial
+```
+
+---
+
 ## 20. CONTROL DE CAMBIOS DEL DOCUMENTO
 
 | Versión | Fecha | Autor | Cambios |

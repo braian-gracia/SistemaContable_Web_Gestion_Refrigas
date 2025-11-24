@@ -146,3 +146,19 @@ def estadisticas_cartera(request):
     }
     
     return JsonResponse(estadisticas)
+
+
+def crear_deuda_view(request):
+    """
+    Vista para renderizar la página de creación de deudas.
+    Template: templates/cartera/crear_deuda.html
+    """
+    return render(request, 'cartera/crear_deuda.html')
+
+
+def gestionar_deudores_view(request):
+    """
+    Vista para renderizar la página de gestión de deudores (CRUD).
+    Template: templates/cartera/gestionar_deudores.html
+    """
+    return render(request, 'cartera/gestionar_deudores.html')
