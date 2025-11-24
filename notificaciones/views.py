@@ -8,6 +8,8 @@ from .services import NotificacionService
 from .models import Notificacion
 import os
 import json
+from almacen_refrigas import settings
+from django.utils import timezone
 
 def es_staff(user):
     return user.is_staff
@@ -110,10 +112,10 @@ def notificaciones_index(request):
 def enviar_notificacion_api(request):
     """
     API para enviar notificaciones desde el formulario HTML.
-    Acepta JSON con los datos de la notificación y envía emails reales.
+    Acepta JSON con los datos de la notificación y envía emails con HTML.
     """
-    from django.core.mail import send_mail
-    from django.conf import settings
+    from django.core.mail import EmailMultiAlternatives
+    from cartera.models import Deuda
     
     try:
         data = json.loads(request.body)
@@ -131,49 +133,178 @@ def enviar_notificacion_api(request):
                 'error': 'El asunto y mensaje son requeridos'
             }, status=400)
         
+        def personalizar_mensaje(mensaje_original, cliente):
+            """Reemplaza todas las variables del mensaje con datos reales del cliente"""
+            mensaje_personalizado = mensaje_original
+            
+            # Variables básicas del cliente
+            mensaje_personalizado = mensaje_personalizado.replace('[NOMBRE]', cliente.nombre)
+            mensaje_personalizado = mensaje_personalizado.replace('[nombre]', cliente.nombre)
+            mensaje_personalizado = mensaje_personalizado.replace('[EMAIL]', cliente.correo or '')
+            mensaje_personalizado = mensaje_personalizado.replace('[TELEFONO]', cliente.telefono or '')
+            
+            # Buscar la deuda más reciente del cliente
+            try:
+                deuda = Deuda.objects.filter(
+                    cliente=cliente, 
+                    pagada=False
+                ).order_by('-fecha_vencimiento').first()
+                
+                if deuda:
+                    saldo = deuda.calcular_saldo_restante()
+                    dias_vencidos = (timezone.now().date() - deuda.fecha_vencimiento).days if deuda.fecha_vencimiento < timezone.now().date() else 0
+                    
+                    # Reemplazar variables de deuda
+                    mensaje_personalizado = mensaje_personalizado.replace('[MONTO]', f'{saldo:,.0f}')
+                    mensaje_personalizado = mensaje_personalizado.replace('[monto]', f'{saldo:,.0f}')
+                    mensaje_personalizado = mensaje_personalizado.replace('[FECHA]', deuda.fecha_vencimiento.strftime('%d/%m/%Y'))
+                    mensaje_personalizado = mensaje_personalizado.replace('[fecha]', deuda.fecha_vencimiento.strftime('%d/%m/%Y'))
+                    mensaje_personalizado = mensaje_personalizado.replace('[DIAS]', str(dias_vencidos) if dias_vencidos > 0 else '0')
+                    mensaje_personalizado = mensaje_personalizado.replace('[dias]', str(dias_vencidos) if dias_vencidos > 0 else '0')
+                else:
+                    # Si no hay deuda, reemplazar con valores por defecto
+                    mensaje_personalizado = mensaje_personalizado.replace('[MONTO]', '0')
+                    mensaje_personalizado = mensaje_personalizado.replace('[monto]', '0')
+                    mensaje_personalizado = mensaje_personalizado.replace('[FECHA]', 'N/A')
+                    mensaje_personalizado = mensaje_personalizado.replace('[fecha]', 'N/A')
+                    mensaje_personalizado = mensaje_personalizado.replace('[DIAS]', '0')
+                    mensaje_personalizado = mensaje_personalizado.replace('[dias]', '0')
+            except Exception as e:
+                print(f"⚠️ Error obteniendo deuda: {str(e)}")
+                # En caso de error, dejar valores por defecto
+                mensaje_personalizado = mensaje_personalizado.replace('[MONTO]', 'N/A')
+                mensaje_personalizado = mensaje_personalizado.replace('[FECHA]', 'N/A')
+                mensaje_personalizado = mensaje_personalizado.replace('[DIAS]', 'N/A')
+            
+            return mensaje_personalizado
+        
+        def crear_html_email(asunto_email, mensaje_texto):
+            """Crea el HTML del email con el mensaje personalizado"""
+            # Convertir saltos de línea a HTML
+            mensaje_html = mensaje_texto.replace('\n', '<br>')
+            
+            return f"""
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                📢 {asunto_email}
+                            </h1>
+                            <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; opacity: 0.95;">
+                                Almacén Refrigas
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Contenido del mensaje -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <div style="color: #333; font-size: 16px; line-height: 1.8;">
+                                {mensaje_html}
+                            </div>
+                            
+                            <!-- Caja de info adicional -->
+                            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 5px solid #667eea; border-radius: 10px; padding: 20px; margin: 30px 0 20px 0;">
+                                <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">
+                                    💡 <strong>¿Necesita ayuda?</strong><br>
+                                    Para más información o cualquier consulta, no dude en contactarnos.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e0e0e0;">
+                            <p style="margin: 0 0 10px 0; color: #333; font-size: 16px; font-weight: bold;">
+                                Almacén Refrigas
+                            </p>
+                            <p style="margin: 0 0 15px 0; color: #666; font-size: 14px;">
+                                📞 Contacto: +57 123 456 7890<br>
+                                📧 Email: info@refrigas.com
+                            </p>
+                            <p style="margin: 0; color: #999; font-size: 12px; line-height: 1.5;">
+                                Este es un mensaje automático, por favor no responda a este correo.<br>
+                                © 2025 Almacén Refrigas. Todos los derechos reservados.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+        
         # Si es "todos" los clientes
         if cliente_id == 'todos':
             from cartera.models import Cliente
-            clientes = Cliente.objects.all()
+            clientes = Cliente.objects.filter(correo__isnull=False).exclude(correo='')
             
             notificaciones_creadas = 0
             emails_enviados = 0
             
             for cliente in clientes:
+                # Personalizar mensaje con datos reales del cliente
+                mensaje_personalizado = personalizar_mensaje(mensaje, cliente)
+                
+                # Crear HTML del email
+                html_email = crear_html_email(asunto, mensaje_personalizado)
+                
                 # Crear registro de notificación
                 notificacion = Notificacion.objects.create(
                     cliente=cliente,
                     tipo=tipo,
                     asunto=asunto,
-                    mensaje=mensaje,
-                    estado='ENVIADA' if not programado else 'PROGRAMADA'
+                    mensaje=mensaje_personalizado,
+                    estado='PENDIENTE',
+                    destinatario_email=cliente.correo
                 )
                 notificaciones_creadas += 1
                 
-                # Enviar email si el tipo es EMAIL y no está programado
-                if tipo == 'EMAIL' and not programado and cliente.correo:
-                    print(f"🔔 Intentando enviar email a: {cliente.correo}")
-                    print(f"📧 Asunto: {asunto}")
+                # Enviar email si no está programado
+                if tipo == 'EMAIL' and not programado:
                     try:
-                        result = send_mail(
+                        print(f"📧 Enviando a {cliente.correo}...")
+                        
+                        email = EmailMultiAlternatives(
                             subject=asunto,
-                            message=mensaje,
+                            body=mensaje_personalizado,
                             from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[cliente.correo],
-                            fail_silently=False,
+                            to=[cliente.correo]
                         )
-                        print(f"✅ Email enviado. Resultado: {result}")
+                        email.attach_alternative(html_email, "text/html")
+                        email.send(fail_silently=False)
+                        
                         emails_enviados += 1
                         notificacion.estado = 'ENVIADA'
+                        notificacion.fecha_envio = timezone.now()
                         notificacion.save()
+                        print(f"✅ Enviado exitosamente")
+                        
                     except Exception as e:
-                        print(f"❌ Error enviando email: {str(e)}")
+                        print(f"❌ Error enviando a {cliente.correo}: {str(e)}")
                         notificacion.estado = 'FALLIDA'
+                        notificacion.error_mensaje = str(e)
                         notificacion.save()
             
             return JsonResponse({
                 'success': True,
-                'mensaje': f'Notificaciones creadas: {notificaciones_creadas}, Emails enviados: {emails_enviados}'
+                'mensaje': f'✅ Notificaciones creadas: {notificaciones_creadas}, Emails enviados: {emails_enviados}'
             })
         
         # Si es un cliente específico
@@ -182,39 +313,51 @@ def enviar_notificacion_api(request):
             try:
                 cliente = Cliente.objects.get(id=cliente_id)
                 
+                # Personalizar mensaje con datos reales del cliente
+                mensaje_personalizado = personalizar_mensaje(mensaje, cliente)
+                
+                # Crear HTML del email
+                html_email = crear_html_email(asunto, mensaje_personalizado)
+                
                 # Crear registro de notificación
                 notificacion = Notificacion.objects.create(
                     cliente=cliente,
                     tipo=tipo,
                     asunto=asunto,
-                    mensaje=mensaje,
-                    estado='ENVIADA' if not programado else 'PROGRAMADA'
+                    mensaje=mensaje_personalizado,
+                    estado='PENDIENTE',
+                    destinatario_email=cliente.correo
                 )
                 
-                # Enviar email si el tipo es EMAIL y no está programado
+                # Enviar email si no está programado
                 if tipo == 'EMAIL' and not programado and cliente.correo:
-                    print(f"🔔 Intentando enviar email a: {cliente.correo}")
-                    print(f"📧 Asunto: {asunto}")
-                    print(f"📝 De: {settings.DEFAULT_FROM_EMAIL}")
                     try:
-                        result = send_mail(
+                        print(f"📧 Enviando a {cliente.correo}...")
+                        print(f"📋 Mensaje personalizado:\n{mensaje_personalizado}")
+                        
+                        email = EmailMultiAlternatives(
                             subject=asunto,
-                            message=mensaje,
+                            body=mensaje_personalizado,
                             from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[cliente.correo],
-                            fail_silently=False,
+                            to=[cliente.correo]
                         )
-                        print(f"✅ Email enviado exitosamente. Resultado: {result}")
+                        email.attach_alternative(html_email, "text/html")
+                        email.send(fail_silently=False)
+                        
                         notificacion.estado = 'ENVIADA'
+                        notificacion.fecha_envio = timezone.now()
                         notificacion.save()
+                        
+                        print(f"✅ Email enviado exitosamente")
                         
                         return JsonResponse({
                             'success': True,
-                            'mensaje': f'Email enviado exitosamente a {cliente.nombre} ({cliente.correo})'
+                            'mensaje': f'✅ Email enviado exitosamente a {cliente.nombre} ({cliente.correo})'
                         })
                     except Exception as e:
-                        print(f"❌ Error enviando email: {str(e)}")
+                        print(f"❌ Error: {str(e)}")
                         notificacion.estado = 'FALLIDA'
+                        notificacion.error_mensaje = str(e)
                         notificacion.save()
                         return JsonResponse({
                             'error': f'Error al enviar email: {str(e)}'
@@ -236,6 +379,8 @@ def enviar_notificacion_api(request):
         }, status=400)
     except Exception as e:
         print(f"❌ Error general: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'error': str(e)
         }, status=500)
