@@ -21,35 +21,13 @@ class TransaccionViewSet(viewsets.ModelViewSet):
         
         if fecha_str:
             try:
-                # Parsear la fecha recibida (formato: YYYY-MM-DD)
+                # Simple: filtrar por fecha exacta
                 fecha_obj = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-                
-                # Crear rango de fechas en zona horaria de Colombia
-                tz_colombia = pytz.timezone('America/Bogota')
-                
-                # Inicio del día: 00:00:00 Colombia
-                inicio_dia = tz_colombia.localize(
-                    datetime.combine(fecha_obj, time.min)
-                )
-                
-                # Fin del día: 23:59:59 Colombia
-                fin_dia = tz_colombia.localize(
-                    datetime.combine(fecha_obj, time.max)
-                )
-                
-                # Filtrar transacciones en ese rango
-                queryset = queryset.filter(
-                    fecha__gte=inicio_dia,
-                    fecha__lte=fin_dia
-                )
-                
-                print(f"📅 Filtrando transacciones del {fecha_obj}")
-                print(f"🕐 Rango: {inicio_dia} a {fin_dia}")
-                
-            except ValueError as e:
-                print(f"❌ Error parseando fecha: {e}")
+                queryset = queryset.filter(fecha=fecha_obj)
+            except ValueError:
+                pass  # Si hay error, devolver todo
         
-        return queryset.order_by('-fecha')
+        return queryset.order_by('-fecha', '-id')
 
     @action(detail=False, methods=['get'])
     def resumen_diario(self, request):
@@ -63,9 +41,8 @@ class TransaccionViewSet(viewsets.ModelViewSet):
         else:
             fecha_param = timezone.localdate()
 
-        transacciones = Transaccion.objects.annotate(
-            fecha_local=TruncDate('fecha', tzinfo=timezone.get_current_timezone())
-        ).filter(fecha_local=fecha_param)
+        transacciones = Transaccion.objects.filter(fecha=fecha_param)
+
 
         resumen = {
             'fecha': fecha_param,
