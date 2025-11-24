@@ -12,7 +12,7 @@ class TipoTransaccion(models.TextChoices):
 
 
 class Transaccion(models.Model):
-    fecha = models.DateTimeField(auto_now_add=True)
+    fecha = models.DateField(default=timezone.localdate)
     tipo = models.CharField(
         max_length=3,
         choices=TipoTransaccion.choices,

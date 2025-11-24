@@ -341,7 +341,7 @@
                 <table class="transacciones-table">
                     <thead>
                         <tr>
-                            <th>Hora</th>
+                            <th>#</th>
                             <th>Tipo</th>
                             <th>Monto</th>
                             <th>Descripción</th>
@@ -414,9 +414,17 @@
     </div>
 
     <script>
-        // Configuración de la API
         const API_BASE = '/api';
         let cierreActual = null;
+
+        // Función para obtener la fecha actual (sin hora)
+        function obtenerFechaHoy() {
+            const fecha = new Date();
+            const year = fecha.getFullYear();
+            const month = String(fecha.getMonth() + 1).padStart(2, '0');
+            const day = String(fecha.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
         // Función para mostrar alertas
         function mostrarAlerta(mensaje, tipo = 'success') {
@@ -431,14 +439,6 @@
             }, 5000);
         }
 
-        // Función para obtener la fecha actual en Colombia
-        function obtenerFechaColombia() {
-            const fecha = new Date();
-            // Convertir a zona horaria de Colombia
-            const fechaColombia = new Date(fecha.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-            return fechaColombia.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
-        }
-
         // Función para formatear números como moneda
         function formatearMoneda(numero) {
             return new Intl.NumberFormat('es-CO', {
@@ -447,19 +447,6 @@
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             }).format(numero);
-        }
-
-        // Función para formatear hora
-        function formatearHora(fechaStr) {
-            const fecha = new Date(fechaStr);
-            
-            // Convertir a zona horaria de Colombia
-            return fecha.toLocaleTimeString('es-CO', { 
-                timeZone: 'America/Bogota',
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: true
-            });
         }
 
         // Controlar visibilidad del campo factura
@@ -493,7 +480,6 @@
             return cookieValue;
         }
 
-        // Configurar headers por defecto para las peticiones
         const defaultHeaders = {
             'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken')
@@ -518,18 +504,18 @@
                 });
 
                 if (response.ok) {
-                    mostrarAlerta('Transacción registrada exitosamente');
+                    mostrarAlerta('✅ Transacción registrada exitosamente');
                     this.reset();
-                    document.getElementById('factura-group').style.display = 'block'; // Reset to default
+                    document.getElementById('factura-group').style.display = 'block';
                     cargarTransacciones();
                     cargarResumen();
                     cargarCierre();
                 } else {
                     const error = await response.json();
-                    mostrarAlerta('Error al registrar transacción: ' + JSON.stringify(error), 'danger');
+                    mostrarAlerta('❌ Error al registrar transacción: ' + JSON.stringify(error), 'danger');
                 }
             } catch (error) {
-                mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+                mostrarAlerta('❌ Error de conexión: ' + error.message, 'danger');
             }
         });
 
@@ -553,16 +539,14 @@
                     
                     loading.style.display = 'none';
                     contenido.style.display = 'block';
-                } else {
-                    mostrarAlerta('Error al cargar el resumen', 'danger');
                 }
             } catch (error) {
-                mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+                mostrarAlerta('❌ Error de conexión: ' + error.message, 'danger');
                 loading.style.display = 'none';
             }
         }
 
-        // Función para cargar las transacciones del día
+        // Función para cargar las transacciones del día (SIMPLIFICADA)
         async function cargarTransacciones() {
             const loading = document.getElementById('transacciones-loading');
             const contenido = document.getElementById('transacciones-contenido');
@@ -572,20 +556,19 @@
             contenido.style.display = 'none';
 
             try {
-                const fecha = new Date().toLocaleDateString('en-CA');
+                const fecha = obtenerFechaHoy();
                 const response = await fetch(`${API_BASE}/transacciones/?fecha=${fecha}`);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    
                     const lista = Array.isArray(data) ? data : data.results || [];
                     tbody.innerHTML = '';
 
                     if (lista.length > 0) {
-                        lista.forEach(transaccion => {
+                        lista.forEach((transaccion, index) => {
                             const fila = document.createElement('tr');
                             fila.innerHTML = `
-                                <td>${formatearHora(transaccion.fecha)}</td>
+                                <td>${index + 1}</td>
                                 <td>${transaccion.tipo_display}</td>
                                 <td>${formatearMoneda(transaccion.monto)}</td>
                                 <td>${transaccion.descripcion}</td>
@@ -599,11 +582,9 @@
                     
                     loading.style.display = 'none';
                     contenido.style.display = 'block';
-                } else {
-                    mostrarAlerta('Error al cargar las transacciones', 'danger');
                 }
             } catch (error) {
-                mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+                mostrarAlerta('❌ Error de conexión: ' + error.message, 'danger');
                 loading.style.display = 'none';
             }
         }
@@ -619,12 +600,11 @@
             contenido.style.display = 'none';
 
             try {
-                const fecha = new Date().toISOString().split('T')[0];
+                const fecha = obtenerFechaHoy();
                 const response = await fetch(`${API_BASE}/cierres/?fecha=${fecha}`);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    
                     const lista = Array.isArray(data) ? data : data.results || [];
 
                     if (lista.length > 0) {
@@ -640,12 +620,9 @@
                     
                     loading.style.display = 'none';
                     contenido.style.display = 'block';
-                } else {
-                    mostrarAlerta('Error al cargar información del cierre', 'danger');
-                    loading.style.display = 'none';
                 }
             } catch (error) {
-                mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+                mostrarAlerta('❌ Error de conexión: ' + error.message, 'danger');
                 loading.style.display = 'none';
             }
         }
