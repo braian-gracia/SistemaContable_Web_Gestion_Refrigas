@@ -95,6 +95,9 @@ TIME_ZONE = 'America/Bogota'
 USE_I18N = True
 USE_TZ = True
 
+import os
+os.environ['TZ'] = 'America/Bogota'
+
 # Archivos estáticos (CSS, JS, imágenes)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']  # Archivos locales
