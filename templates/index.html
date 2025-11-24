@@ -431,6 +431,14 @@
             }, 5000);
         }
 
+        // Función para obtener la fecha actual en Colombia
+        function obtenerFechaColombia() {
+            const fecha = new Date();
+            // Convertir a zona horaria de Colombia
+            const fechaColombia = new Date(fecha.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+            return fechaColombia.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
+        }
+
         // Función para formatear números como moneda
         function formatearMoneda(numero) {
             return new Intl.NumberFormat('es-CO', {
@@ -444,9 +452,13 @@
         // Función para formatear hora
         function formatearHora(fechaStr) {
             const fecha = new Date(fechaStr);
+            
+            // Convertir a zona horaria de Colombia
             return fecha.toLocaleTimeString('es-CO', { 
+                timeZone: 'America/Bogota',
                 hour: '2-digit', 
-                minute: '2-digit' 
+                minute: '2-digit',
+                hour12: true
             });
         }
 

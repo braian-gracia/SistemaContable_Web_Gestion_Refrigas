@@ -1,3 +1,4 @@
+import pytz
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -5,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
-from datetime import datetime
+from datetime import datetime, time
 from .models import Transaccion, CierreCaja, TipoTransaccion
 from .serializers import TransaccionSerializer, CierreCajaSerializer
 
@@ -15,13 +16,40 @@ class TransaccionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        queryset = Transaccion.objects.all()
-        fecha = self.request.query_params.get('fecha', None)
-        if fecha:
-            queryset = queryset.annotate(
-                fecha_local=TruncDate('fecha', tzinfo=timezone.get_current_timezone())
-            ).filter(fecha_local=fecha)
-        return queryset
+        queryset = Transaccion.objects.select_related('usuario').all()
+        fecha_str = self.request.query_params.get('fecha', None)
+        
+        if fecha_str:
+            try:
+                # Parsear la fecha recibida (formato: YYYY-MM-DD)
+                fecha_obj = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+                
+                # Crear rango de fechas en zona horaria de Colombia
+                tz_colombia = pytz.timezone('America/Bogota')
+                
+                # Inicio del día: 00:00:00 Colombia
+                inicio_dia = tz_colombia.localize(
+                    datetime.combine(fecha_obj, time.min)
+                )
+                
+                # Fin del día: 23:59:59 Colombia
+                fin_dia = tz_colombia.localize(
+                    datetime.combine(fecha_obj, time.max)
+                )
+                
+                # Filtrar transacciones en ese rango
+                queryset = queryset.filter(
+                    fecha__gte=inicio_dia,
+                    fecha__lte=fin_dia
+                )
+                
+                print(f"📅 Filtrando transacciones del {fecha_obj}")
+                print(f"🕐 Rango: {inicio_dia} a {fin_dia}")
+                
+            except ValueError as e:
+                print(f"❌ Error parseando fecha: {e}")
+        
+        return queryset.order_by('-fecha')
 
     @action(detail=False, methods=['get'])
     def resumen_diario(self, request):

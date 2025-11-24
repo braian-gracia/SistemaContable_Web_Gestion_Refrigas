@@ -30,7 +30,21 @@ class NotificacionService:
                     contexto
                 )
             except Exception:
-                text_content = f"Por favor, revisa este correo en un cliente que soporte HTML."
+                # Si no existe template .txt, crear versión simple del HTML
+                text_content = f"""
+{asunto}
+
+Estimado/a {contexto.get('cliente_nombre', 'Cliente')},
+
+{contexto.get('mensaje_principal', 'Le informamos sobre su cuenta.')}
+
+Detalles:
+- Monto: ${contexto.get('saldo_restante', contexto.get('monto_deuda', 0))}
+- Fecha: {contexto.get('fecha_vencimiento', 'N/A')}
+
+Atentamente,
+Almacén Refrigas
+                """.strip()
             
             # Crear y enviar email
             email = EmailMultiAlternatives(
@@ -59,23 +73,27 @@ class NotificacionService:
         """Notifica al cliente que tiene una deuda vencida"""
         cliente = deuda.cliente
         saldo_restante = deuda.calcular_saldo_restante()
+        dias_vencidos = (timezone.now().date() - deuda.fecha_vencimiento).days
         
         contexto = {
             'cliente_nombre': cliente.nombre,
-            'monto_deuda': deuda.monto,
-            'saldo_restante': saldo_restante,
-            'fecha_vencimiento': deuda.fecha_vencimiento,
-            'descripcion': deuda.descripcion,
-            'dias_vencidos': (timezone.now().date() - deuda.fecha_vencimiento).days
+            'monto_deuda': f"{deuda.monto:,.0f}",  # Formatear con separador de miles
+            'saldo_restante': f"{saldo_restante:,.0f}",
+            'fecha_vencimiento': deuda.fecha_vencimiento.strftime('%d/%m/%Y'),
+            'descripcion': deuda.descripcion or 'Deuda pendiente',
+            'dias_vencidos': dias_vencidos,
+            'mensaje_principal': f'Le recordamos que tiene una deuda vencida desde hace {dias_vencidos} días.',
+            'es_urgente': dias_vencidos > 15,  # Más de 15 días = urgente
+            'color_alerta': '#d9534f' if dias_vencidos > 15 else '#f0ad4e',
         }
         
-        asunto = f"Recordatorio: Deuda Vencida - {cliente.nombre}"
+        asunto = f"{'🚨 URGENTE' if dias_vencidos > 15 else '📋 Recordatorio'}: Deuda Vencida - Almacén Refrigas"
         
         notificacion = Notificacion.objects.create(
             tipo='DEUDA_VENCIDA_CLIENTE',
             destinatario_email=cliente.correo,
             asunto=asunto,
-            mensaje=f"Deuda de ${saldo_restante} vencida desde {deuda.fecha_vencimiento}",
+            mensaje=f"Deuda de ${saldo_restante:,.0f} vencida desde {deuda.fecha_vencimiento.strftime('%d/%m/%Y')}",
             deuda=deuda,
             cliente=cliente
         )
@@ -102,20 +120,24 @@ class NotificacionService:
         """Notifica a todos los administradores sobre una deuda vencida"""
         cliente = deuda.cliente
         saldo_restante = deuda.calcular_saldo_restante()
+        dias_vencidos = (timezone.now().date() - deuda.fecha_vencimiento).days
         admins = User.objects.filter(is_staff=True, is_active=True)
         
         contexto = {
             'cliente_nombre': cliente.nombre,
-            'cliente_telefono': cliente.telefono,
-            'cliente_correo': cliente.correo,
-            'monto_deuda': deuda.monto,
-            'saldo_restante': saldo_restante,
-            'fecha_vencimiento': deuda.fecha_vencimiento,
-            'descripcion': deuda.descripcion,
-            'dias_vencidos': (timezone.now().date() - deuda.fecha_vencimiento).days
+            'cliente_telefono': cliente.telefono or 'No registrado',
+            'cliente_correo': cliente.correo or 'No registrado',
+            'monto_deuda': f"{deuda.monto:,.0f}",
+            'saldo_restante': f"{saldo_restante:,.0f}",
+            'fecha_vencimiento': deuda.fecha_vencimiento.strftime('%d/%m/%Y'),
+            'descripcion': deuda.descripcion or 'Deuda pendiente',
+            'dias_vencidos': dias_vencidos,
+            'mensaje_principal': f'El cliente {cliente.nombre} tiene una deuda vencida que requiere atención.',
+            'es_urgente': dias_vencidos > 15,
+            'color_alerta': '#d9534f' if dias_vencidos > 15 else '#f0ad4e',
         }
         
-        asunto = f"Alerta: Cliente {cliente.nombre} con deuda vencida"
+        asunto = f"🔔 Alerta: Cliente {cliente.nombre} con deuda vencida ({dias_vencidos} días)"
         notificaciones_enviadas = []
         
         for admin in admins:
@@ -126,7 +148,7 @@ class NotificacionService:
                 tipo='DEUDA_VENCIDA_ADMIN',
                 destinatario_email=admin.email,
                 asunto=asunto,
-                mensaje=f"Cliente {cliente.nombre} tiene deuda vencida de ${saldo_restante}",
+                mensaje=f"Cliente {cliente.nombre} tiene deuda vencida de ${saldo_restante:,.0f}",
                 deuda=deuda,
                 cliente=cliente
             )
